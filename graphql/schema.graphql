@@ -1,0 +1,20 @@
+type Product {
+  id: ID!
+  title: String!
+  version: Int!
+}
+type Query {
+  listProducts: [ Product ]
+}
+input AddInput {
+  title: String!
+}
+input UpdateInput {
+  id: ID!
+  title: String!
+  version: Int!
+}
+type Mutation {
+  addProduct(input: AddInput!): Product
+  updateProduct(input: UpdateInput!): Product
+}
