@@ -1,5 +1,4 @@
 import * as cdk from "@aws-cdk/core";
-import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import * as appsync from "@aws-cdk/aws-appsync";
 
 export class CdkappsyncDynamoErrorStack extends cdk.Stack {
@@ -25,49 +24,23 @@ export class CdkappsyncDynamoErrorStack extends cdk.Stack {
       }),
     });
 
-    // Dynamo Table and register as resolver
-
-    const table = new dynamodb.Table(this, "table", {
-      tableName: PREFIX_NAME + "-table",
-      partitionKey: {
-        name: "id",
-        type: dynamodb.AttributeType.STRING,
-      },
-      removalPolicy: cdk.RemovalPolicy.DESTROY
-    })
-
     // AppSync Datasource
 
-    const dynamo_datasource = api.addDynamoDbDataSource(
-      "dynamo_datasource",
-      table
-    )
+    const none_datasource = new appsync.NoneDataSource(this, 'datasource', {
+      api: api
+    })
     
     //AppSync Resolver
 
-    dynamo_datasource.createResolver({
+    none_datasource.createResolver({
       typeName: "Query",
-      fieldName: "listProducts",
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList(),
-    })
-    
-    dynamo_datasource.createResolver({
-      typeName: "Mutation",
-      fieldName: "addProduct",
-      requestMappingTemplate: appsync.MappingTemplate.fromFile(
-        "mapping_template/add_product.vtl"
+      fieldName: "get",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(
+        `$util.error("hello")`
       ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    })
-    
-    dynamo_datasource.createResolver({
-      typeName: "Mutation",
-      fieldName: "updateProduct",
-      requestMappingTemplate: appsync.MappingTemplate.fromFile(
-        "mapping_template/update_product.vtl"
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        `$util.toJson($ctx.result)`
       ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     })
     
   }
